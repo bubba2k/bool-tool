@@ -2,11 +2,10 @@
 #include "tokens.h"
 #include "parse.h"
 
-TreeNode *lp_treenode_create(int type, int var_hash, const char *name, TreeNode *_left, TreeNode *_right)
+TreeNode *lp_treenode_create(int type, const char *name, TreeNode *_left, TreeNode *_right)
 {
 	TreeNode *node = malloc(sizeof(TreeNode));
 	node->type 		= type;
-	node->var_hash	= var_hash;
 	snprintf(node->name, 63, "%s", name);
 
 	node->left  = _left;
@@ -15,7 +14,7 @@ TreeNode *lp_treenode_create(int type, int var_hash, const char *name, TreeNode 
 	return node;
 }
 
-static const Token end_token = { .ttype = -1, .tdetail = -1 };
+static const Token end_token = { .type = LP_TOK_UNKNOWN, .name = "\0" };
 int token_index		= 	 0;
 DA_tokens *tokens 	= NULL;
 Token *next_token 	= NULL;
@@ -57,12 +56,10 @@ TreeNode *parse_expr()
 {
 	TreeNode *a = parse_disj();
 
-	scan_token();
-	if(	(next_token->ttype == LP_TOK_BINARY_OP)
-		&& (next_token->tdetail == LP_OP_IMPLIC) )	
+	if(next_token->type == LP_TOK_IMPLIC)
 	{
 		scan_token();
-		return lp_treenode_create(LP_OP_IMPLIC, -1, "->", a, parse_expr());
+		return lp_treenode_create(LP_TOK_IMPLIC, "->", a, parse_expr());
 	}
 	else
 	{
@@ -73,13 +70,11 @@ TreeNode *parse_expr()
 TreeNode *parse_disj()
 {
 	TreeNode *a = parse_conj();
-	
-	scan_token();
-	if( (next_token->ttype == LP_TOK_BINARY_OP)
-		&& (next_token->tdetail == LP_OP_OR)		)
+
+	if(next_token->type == LP_TOK_OR)
 	{
 		scan_token();
-		return lp_treenode_create(LP_OP_OR, -1, "||", a, parse_disj());
+		return lp_treenode_create(LP_TOK_OR, "||", a, parse_disj());
 	}
 	else
 	{
@@ -90,13 +85,11 @@ TreeNode *parse_disj()
 TreeNode *parse_conj()
 {
 	TreeNode *a = parse_nega();
-	scan_token();
 
-	if( (next_token->ttype == LP_TOK_BINARY_OP)
-		&& (next_token->tdetail == LP_OP_AND)	)
+	if(next_token->type == LP_TOK_AND)
 	{
 		scan_token();
-		return lp_treenode_create(LP_OP_AND, -1, "&&", a, parse_conj());
+		return lp_treenode_create(LP_TOK_AND, "&&", a, parse_conj());
 	}
 	else
 	{
@@ -106,11 +99,10 @@ TreeNode *parse_conj()
 
 TreeNode *parse_nega()
 {
-	if( (next_token->ttype == LP_TOK_UNARY_OP)
-		&& (next_token->tdetail == LP_OP_NOT)	)
+	if(next_token->type == LP_TOK_NOT)
 	{
 		scan_token();
-		return lp_treenode_create(LP_OP_NOT, -1, "!", parse_atom(), NULL);
+		return lp_treenode_create(LP_TOK_NOT, "!", parse_nega(), NULL);
 	}
 	else
 	{
@@ -120,24 +112,35 @@ TreeNode *parse_nega()
 
 TreeNode *parse_atom()
 {
-	if(next_token->ttype == LP_TOK_FALSE)
+	if(next_token->type == LP_TOK_FALSE)
 	{
-		return lp_treenode_create(LP_TOK_FALSE, -1, "0", NULL, NULL);
+		TreeNode *a = lp_treenode_create(LP_TOK_FALSE, "0", NULL, NULL);
+		scan_token();
+
+		return a;
 	}
-	else if(next_token->ttype == LP_TOK_TRUE)
+	else if(next_token->type == LP_TOK_TRUE)
 	{
-		return lp_treenode_create(LP_TOK_TRUE, -1, "1", NULL, NULL);
+		TreeNode *a = lp_treenode_create(LP_TOK_TRUE, "1", NULL, NULL);
+		scan_token();
+
+		return a;
 	}
-	else if(next_token->ttype == LP_TOK_VARIABLE)
+	else if(next_token->type == LP_TOK_VARIABLE)
 	{
-		return lp_treenode_create(LP_TOK_VARIABLE, next_token->tdetail, next_token->name, NULL, NULL);
+		TreeNode *a = lp_treenode_create(LP_TOK_VARIABLE, next_token->name, NULL, NULL);
+		scan_token();
+
+		return a;
 	}
-	else if(next_token->ttype == LP_TOK_BRACKET_OPEN)
+	else if(next_token->type == LP_TOK_PAR_OPEN)
 	{
 		scan_token();
 
 		TreeNode *a = parse_expr();
 
+		// Skip the parenthesis
+		scan_token();
 		scan_token();
 
 		return a;
@@ -148,9 +151,9 @@ TreeNode *parse_atom()
 void lp_tree_print_raw_rec(TreeNode *node, int depth)
 {
 	for(int i = 0; i < depth; i++)
-		printf("\t");
+		printf(" ");
 
-	printf("{%d, %d}\n", node->type, node->var_hash);
+	token_print((Token *) node);
 
 	if(node->left)
 		lp_tree_print_raw_rec(node->left, depth + 1);
@@ -167,8 +170,8 @@ void lp_tree_print_raw(TreeNode *node)
 
 void lp_tree_print_rec(TreeNode *node)
 {
-	if( node->type == LP_OP_OR || node->type == LP_OP_AND
-		|| node->type == LP_OP_IMPLIC )
+	if( node->type == LP_TOK_OR || node->type == LP_TOK_AND
+		|| node->type == LP_TOK_IMPLIC )
 	{
 		printf("(");
 		lp_tree_print_rec(node->left);
@@ -176,7 +179,7 @@ void lp_tree_print_rec(TreeNode *node)
 		lp_tree_print_rec(node->right);
 		printf(")");
 	}
-	else if( node->type == LP_OP_NOT )
+	else if( node->type == LP_TOK_NOT )
 	{
 		printf("!(");
 		lp_tree_print_rec(node->left);

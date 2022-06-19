@@ -39,11 +39,10 @@ int token_lookup(const char *pos, Token *token, int *len)
 {
 	for(unsigned int i = 0; i < TOKEN_TABLE_SIZE; i++)
 	{
-		if(strstr(pos, token_table[i].identifier) == pos)
+		if(strstr(pos, token_table[i].name) == pos)
 		{
-			// *token = token_table[i].token;	Lets try token_copy instead!
-			token_copy(token, &token_table[i].token);
-			*len   = strlen(token_table[i].identifier);
+			token_copy(token, &token_table[i]);
+			*len   = strlen(token_table[i].name);
 			return 1;
 		}
 	}
@@ -105,9 +104,8 @@ int lex_expression(const char *expr, DA_tokens *tokens, char *err_msg_buf, size_
 		}
 		else if(parse_variable(pos, &variable_str, &step)) // Else, the token must either be a variable or invalid
 		{
-			token.ttype   = LP_TOK_VARIABLE;
-			token.tdetail = hash(variable_str); // Variables are identified with a quick hash
-			snprintf(token.name, 63, "%s", variable_str); // Copy the variables name into the token struct
+			token.type   = LP_TOK_VARIABLE;
+			snprintf(token.name, LP_TOKEN_MAX_SIZE, "%s", variable_str); // Copy the variables name into the token struct
 
 			DA_tokens_push_back(tokens, &token);
 			pos += step;
@@ -160,15 +158,17 @@ static const unsigned int state_trans_table[6][6] = {
 
 AnalysisState resolve_state(Token *token)
 {
-	switch(token->ttype)
+	switch(token->type)
 	{
-		case LP_TOK_UNARY_OP:  		return UNARY_OP; 	break;
-		case LP_TOK_BINARY_OP: 		return BINARY_OP;	break;
+		case LP_TOK_NOT:  			return UNARY_OP; 	break;
+		case LP_TOK_AND: 			return BINARY_OP;	break;
+		case LP_TOK_OR:				return BINARY_OP;	break;
+		case LP_TOK_IMPLIC:			return BINARY_OP;	break;
 		case LP_TOK_VARIABLE:  		return ATOM;		break;
 		case LP_TOK_TRUE:		   	return ATOM;		break;
 		case LP_TOK_FALSE:		   	return ATOM;		break;
-		case LP_TOK_BRACKET_OPEN:	return PAR_OPEN;	break;
-		case LP_TOK_BRACKET_CLOSE:	return PAR_CLOSE;	break;
+		case LP_TOK_PAR_OPEN:		return PAR_OPEN;	break;
+		case LP_TOK_PAR_CLOSE:		return PAR_CLOSE;	break;
 		default:			   		return NONE;		break;
 	}
 }

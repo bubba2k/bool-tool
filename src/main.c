@@ -61,6 +61,7 @@ int parse_expression(const char * expr_str)
 
 	printf("Expression print:\n");
 	lp_tree_print(tree);
+	printf("\n\n");
 
 
 	lp_tree_destroy(tree);
@@ -74,11 +75,16 @@ int parse_expression(const char * expr_str)
 
 int main()
 {
-	char expr[LP_LINE_MAX_SIZE];
+	while(1)
+	{
+		printf("Enter your expression:\n");
 
-	lp_getline(expr, LP_LINE_MAX_SIZE, stdin);
+		char expr[LP_LINE_MAX_SIZE];
 
-	parse_expression(expr);
+		lp_getline(expr, LP_LINE_MAX_SIZE, stdin);
+
+		parse_expression(expr);
+	}
 
 	return 0;
 }

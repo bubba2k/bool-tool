@@ -6,9 +6,8 @@
 typedef struct TreeNode TreeNode;
 struct TreeNode 
 {
-	int		 	type;
-	int 		var_hash;
-	char 		name[64];
+	TokenType		type;
+	char 			name[64];
 	
 	TreeNode *left, *right;
 };
