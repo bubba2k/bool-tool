@@ -24,6 +24,7 @@ endif()
 
 target_sources(	parser PRIVATE
 				src/main.c
+				src/lex.c
 				src/parse.c
 				src/tokens.c   )
 

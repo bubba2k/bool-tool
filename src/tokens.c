@@ -51,7 +51,7 @@ const char *token_get_str(Token *token)
 void token_print(Token *token)
 {
 	if(token->ttype == LP_TOK_VARIABLE)
-		printf("Token{%s, ID: %d}", token_get_str(token), token->tdetail);
+		printf("Token{%s, \"%s\", ID: %d}", token_get_str(token), token->name, token->tdetail);
 	else
 		printf("Token{%s}", token_get_str(token));
 }
@@ -66,39 +66,46 @@ void DA_tokens_print(DA_tokens *arr)
 	}
 }
 
+void token_copy(Token *dest, const Token *src)
+{
+	dest->ttype 	= src->ttype;
+	dest->tdetail	= src->tdetail;
+	memcpy(dest->name, src->name, 64);
+}
+
 /* TOKEN LOOKUP TABLE */
 const TokenLookupEntry token_table[TOKEN_TABLE_SIZE] = 
 {
 	{
-		{ .ttype = LP_TOK_FALSE, .tdetail = -1 },
-		"F"
+		{ .ttype = LP_TOK_FALSE, .tdetail = -1, .name = "0" },
+		"0"
 	},
 	{
-		{ .ttype = LP_TOK_TRUE, .tdetail = -1 },
-		"T"
+		{ .ttype = LP_TOK_TRUE, .tdetail = -1, .name = "1" },
+		"1"
 	},
 	{
-		{ .ttype = LP_TOK_BRACKET_OPEN,  .tdetail = -1 },
+		{ .ttype = LP_TOK_BRACKET_OPEN,  .tdetail = -1, .name = "(" },
 		"("
 	},
 	{
-		{ .ttype = LP_TOK_BRACKET_CLOSE, .tdetail = -1 },
+		{ .ttype = LP_TOK_BRACKET_CLOSE, .tdetail = -1, .name = ")" },
 		")"
 	},
 	{
-		{ .ttype = LP_TOK_UNARY_OP, .tdetail = LP_OP_NOT },
+		{ .ttype = LP_TOK_UNARY_OP, .tdetail = LP_OP_NOT, .name = "!" },
 		"!"
 	},
 	{
-		{ .ttype = LP_TOK_BINARY_OP, .tdetail = LP_OP_AND },
+		{ .ttype = LP_TOK_BINARY_OP, .tdetail = LP_OP_AND, .name = "&&" },
 		"&&"
 	},
 	{
-		{ .ttype = LP_TOK_BINARY_OP, .tdetail = LP_OP_OR  },
+		{ .ttype = LP_TOK_BINARY_OP, .tdetail = LP_OP_OR, .name = "||"  },
 		"||"
 	},
 	{
-		{ .ttype = LP_TOK_BINARY_OP, .tdetail = LP_OP_IMPLIC},
+		{ .ttype = LP_TOK_BINARY_OP, .tdetail = LP_OP_IMPLIC, .name = "->" },
 		"->"
 	}
 };

@@ -1,0 +1,7 @@
+<expr> ::= <disj> " -> " <expr> | <disj>
+<disj> ::= <conj> " || " <disj> | <conj>
+<conj> ::= <nega> " && " <conj> | <nega>
+<nega> ::= "!" <atom> | <atom>
+<atom> ::= "1" | "0"  | [a-z]+ | "(" <expr> ")"
+
+https://bnfplayground.pauliankline.com/

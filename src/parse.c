@@ -1,231 +1,211 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <limits.h>
-
+#include "lex.h"
 #include "tokens.h"
 #include "parse.h"
 
-const char *blank_space = " \t";
-
-
-/* Quick hashing function for strings */
-unsigned long hash(char *str)
+TreeNode *lp_treenode_create(int type, int var_hash, const char *name, TreeNode *_left, TreeNode *_right)
 {
-    unsigned long hash = 5381;
-    int c;
+	TreeNode *node = malloc(sizeof(TreeNode));
+	node->type 		= type;
+	node->var_hash	= var_hash;
+	snprintf(node->name, 63, "%s", name);
 
-    while ((c = *str++))
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+	node->left  = _left;
+	node->right = _right;
 
-    return hash;
+	return node;
 }
 
-/* Check if char is a member of the given string. */
-int char_is_one_of(char c, const char *chars)
-{
-	unsigned len = strlen(chars);
-	for(unsigned int i = 0; i < len; i++)
-		if( c == chars[i] ) return 1;
+static const Token end_token = { .ttype = -1, .tdetail = -1 };
+int token_index		= 	 0;
+DA_tokens *tokens 	= NULL;
+Token *next_token 	= NULL;
 
-	return 0;
-}
-
-/* Returns 1 if a token matches the given string at the current position and copies the 
-   token and length of the matched string to *token and *len respectively.
-   Else returns 0 and leaves all pointers untouched. */
-int token_lookup(const char *pos, Token *token, int *len)
+int scan_token() 
 {
-	for(unsigned int i = 0; i < TOKEN_TABLE_SIZE; i++)
+	if((size_t) token_index >= tokens->size)
 	{
-		if(strstr(pos, token_table[i].identifier) == pos)
-		{
-			*token = token_table[i].token;
-			*len   = strlen(token_table[i].identifier);
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-/* Attempt to parse a variable. ALWAYS free var_str after use of this function,
-   even if it returns 0 */
-int parse_variable(const char *pos, char **var_str_ptr, int *len)
-{
-	*var_str_ptr = (char *) calloc(64, 1); // Max var length is 64
-	unsigned int i = 0;
-	
-	while(isalpha(*pos) && i < 64)
-	{
-		(*var_str_ptr)[i++] = *pos++;
-	}
-
-	if(i == 0 || i == 64) // Failure!
+		next_token = (Token *) &end_token;
 		return 0;
-	else // Success!
-	{
-		*len = i;
-		return 1;
 	}
-}
 
-/* Perform lexical analysis of the given string. Found tokens are appended to 
-   the given dynamic array of tokens (which must be initialized beforehand)
-   1 is returned. 
-   On failure, returns 0 and copies an error message to err_msg_buf of size 
-   err_msg_buf_size, unless err_msg_buf == NULL. */
-int lex_expression(const char *expr, DA_tokens *tokens, char *err_msg_buf, size_t err_msg_buf_size)
-{
-	/* Note: This rather simplistic approach to lexing only works as long
-			 as none of the token words are infixes of other token words.
-			 An exception are "T" or "F", which could possibly be infix
-			 of a variable name. That might need fixing later.		      */
-
-	const char *pos = expr;
-	while(*pos != '\0')
-	{
-		// Skip all blanks
-		if(char_is_one_of(*pos, blank_space)) { pos++; continue; };
-
-		Token token;
-		int step;
-		char *variable_str;
-
-		// Check for our built-in tokens
-		if(token_lookup(pos, &token, &step))
-		{
-			// If successful, append the parsed token to the list and step forward
-			DA_tokens_push_back(tokens, &token);
-			pos += step;
-		}
-		else if(parse_variable(pos, &variable_str, &step)) // Else, the token must either be a variable or invalid
-		{
-			token.ttype   = LP_TOK_VARIABLE;
-			token.tdetail = hash(variable_str); // Variables are identified with a quick hash
-
-			DA_tokens_push_back(tokens, &token);
-			pos += step;
-
-			free(variable_str);
-		}
-		else
-		{
-			free(variable_str); // variable_str must be freed even if parse_variable() fails
-
-			/* Output our error message */
-			if(err_msg_buf != NULL)
-				snprintf(err_msg_buf, err_msg_buf_size, "Illegal symbol '%c' at index %ld", *pos, pos - expr + 1);
-
-			return 0;
-		}
-	}
+	next_token = DA_tokens_get(tokens, token_index++);
 
 	return 1;
 }
 
+TreeNode *parse_expr();
+TreeNode *parse_disj();
+TreeNode *parse_conj();
+TreeNode *parse_nega();
+TreeNode *parse_atom();
 
-/* Syntactical analysis */
-typedef enum { NONE = 0, UNARY_OP = 1, BINARY_OP = 2, PAR_OPEN = 3, PAR_CLOSE = 4, ATOM = 5 }
-		AnalysisState;
-
-const char *state_enum_get_str(AnalysisState state)
+TreeNode *lp_tree_create(DA_tokens *_tokens)
 {
-	switch(state)
+	// Setup the environment
+	tokens 		= _tokens;
+	token_index = 0;
+	next_token	= NULL;
+
+	// Scan the first token and start building the tree
+	scan_token();
+	TreeNode *tree = parse_expr();
+
+	return tree;
+}
+
+TreeNode *parse_expr()
+{
+	TreeNode *a = parse_disj();
+
+	scan_token();
+	if(	(next_token->ttype == LP_TOK_BINARY_OP)
+		&& (next_token->tdetail == LP_OP_IMPLIC) )	
 	{
-		case NONE:		return 	"None";
-		case UNARY_OP:	return	"Unary Operator";
-		case BINARY_OP:	return	"Binary Operator";
-		case PAR_OPEN:	return	"'('";
-		case PAR_CLOSE:	return	"')'";
-		case ATOM:		return	"Atom";
-		default:		return	"UNKNOWN";
+		scan_token();
+		return lp_treenode_create(LP_OP_IMPLIC, -1, "->", a, parse_expr());
+	}
+	else
+	{
+		return a;
 	}
 }
 
-/* Table of what state transitions are legal in our grammar */
-static const unsigned int state_trans_table[6][6] = {
-/*					NONE	UNARY	BINARY	P_OPEN	P_CLOSE	ATOM	*/
-/* NONE	 	 */	 {	1,		1,		0,		1,		0,		1	  },
-/* UNARY 	 */  {	0,		1,		0,		1,		0,		1	  },
-/* BINARY	 */  {	0,		1,		0,		1,		0,		1	  },
-/* P_OPEN    */  {	0,		1,		0,		1,		0,		1	  },
-/* P_CLOSE   */  {	1,		0,		1,		0,		1,		0	  },
-/* ATOM      */  {	1,		0,		1,		0,		1,		0	  }};
-
-AnalysisState resolve_state(Token *token)
+TreeNode *parse_disj()
 {
-	switch(token->ttype)
+	TreeNode *a = parse_conj();
+	
+	scan_token();
+	if( (next_token->ttype == LP_TOK_BINARY_OP)
+		&& (next_token->tdetail == LP_OP_OR)		)
 	{
-		case LP_TOK_UNARY_OP:  		return UNARY_OP; 	break;
-		case LP_TOK_BINARY_OP: 		return BINARY_OP;	break;
-		case LP_TOK_VARIABLE:  		return ATOM;		break;
-		case LP_TOK_TRUE:		   	return ATOM;		break;
-		case LP_TOK_FALSE:		   	return ATOM;		break;
-		case LP_TOK_BRACKET_OPEN:	return PAR_OPEN;	break;
-		case LP_TOK_BRACKET_CLOSE:	return PAR_CLOSE;	break;
-		default:			   		return NONE;		break;
+		scan_token();
+		return lp_treenode_create(LP_OP_OR, -1, "||", a, parse_disj());
+	}
+	else
+	{
+		return a;
 	}
 }
 
-/* Check whether the list of tokens represents a grammatically correct expression.
-   In case of error, copies an error message of maximum length err_msg_size to 
-   err_msg, if err_msg is not NULL. 											 */
-int syntactically_correct(DA_tokens *tokens, char *err_msg, size_t err_msg_size)
+TreeNode *parse_conj()
 {
-	AnalysisState old = NONE, new = NONE;
-	int parenthesis_depth = 0;
-	int error = 0;
+	TreeNode *a = parse_nega();
+	scan_token();
 
-	// Check all the transitions
-	unsigned int i;
-	for(i = 0; i <= (tokens->size); i++)
+	if( (next_token->ttype == LP_TOK_BINARY_OP)
+		&& (next_token->tdetail == LP_OP_AND)	)
 	{
-		if(i == tokens->size)
-			new = NONE;
-		else
-			new = resolve_state(tokens->data + i);
-
-		if(new == PAR_OPEN) 
-			++parenthesis_depth;
-		else if(new == PAR_CLOSE)
-		{
-			--parenthesis_depth;
-			if(parenthesis_depth < 0)
-			{
-				error = 1;
-				break;
-			}
-		}
-
-		if(!state_trans_table[old][new]) { error = 1; break; }
-		old = new;
+		scan_token();
+		return lp_treenode_create(LP_OP_AND, -1, "&&", a, parse_conj());
 	}
-
-	if(error || parenthesis_depth != 0)
+	else
 	{
-		if(parenthesis_depth > 0)
-		{
-			snprintf(err_msg, err_msg_size, "Unterminated parenthesis detected!");
-			return 0;
-		}
-		else if(parenthesis_depth < 0)
-		{
-			snprintf(err_msg, err_msg_size, "Stray ')' detected!");
-			return 0;
-		}
-		else	// Create a generic error message
-		{
-			char next[64], prev[64];
- 			strcpy(next,  state_enum_get_str(new));
-			strcpy(prev, state_enum_get_str(old));
-
-			snprintf(err_msg, err_msg_size, "Illegal %s after %s.", next, prev);
-
-			return 0;
-		}
+		return a;
 	}
+}
 
-	return 1;
+TreeNode *parse_nega()
+{
+	if( (next_token->ttype == LP_TOK_UNARY_OP)
+		&& (next_token->tdetail == LP_OP_NOT)	)
+	{
+		scan_token();
+		return lp_treenode_create(LP_OP_NOT, -1, "!", parse_atom(), NULL);
+	}
+	else
+	{
+		return parse_atom();
+	}
+}
+
+TreeNode *parse_atom()
+{
+	if(next_token->ttype == LP_TOK_FALSE)
+	{
+		return lp_treenode_create(LP_TOK_FALSE, -1, "0", NULL, NULL);
+	}
+	else if(next_token->ttype == LP_TOK_TRUE)
+	{
+		return lp_treenode_create(LP_TOK_TRUE, -1, "1", NULL, NULL);
+	}
+	else if(next_token->ttype == LP_TOK_VARIABLE)
+	{
+		return lp_treenode_create(LP_TOK_VARIABLE, next_token->tdetail, next_token->name, NULL, NULL);
+	}
+	else if(next_token->ttype == LP_TOK_BRACKET_OPEN)
+	{
+		scan_token();
+
+		TreeNode *a = parse_expr();
+
+		scan_token();
+
+		return a;
+	}
+	else return NULL; // This should never happen!
+}
+
+void lp_tree_print_raw_rec(TreeNode *node, int depth)
+{
+	for(int i = 0; i < depth; i++)
+		printf("\t");
+
+	printf("{%d, %d}\n", node->type, node->var_hash);
+
+	if(node->left)
+		lp_tree_print_raw_rec(node->left, depth + 1);
+	if(node->right)
+		lp_tree_print_raw_rec(node->right, depth + 1);
+}
+
+void lp_tree_print_raw(TreeNode *node)
+{
+	lp_tree_print_raw_rec(node, 0);
+	printf("\n");
+}
+
+
+void lp_tree_print_rec(TreeNode *node)
+{
+	if( node->type == LP_OP_OR || node->type == LP_OP_AND
+		|| node->type == LP_OP_IMPLIC )
+	{
+		printf("(");
+		lp_tree_print_rec(node->left);
+		printf(" %s ", node->name);
+		lp_tree_print_rec(node->right);
+		printf(")");
+	}
+	else if( node->type == LP_OP_NOT )
+	{
+		printf("!(");
+		lp_tree_print_rec(node->left);
+		printf(")");
+	}
+	else if( node->type == LP_TOK_TRUE )
+	{
+		printf("1");
+	}
+	else if( node->type == LP_TOK_FALSE )
+	{
+		printf("0");
+	}
+	else if( node->type == LP_TOK_VARIABLE )
+	{
+		printf("%s", node->name);
+	}
+}
+
+void lp_tree_print(TreeNode *node)
+{
+	lp_tree_print_rec(node);
+	printf("\n");
+}
+
+void lp_tree_destroy(TreeNode *node)
+{
+	if(node->left)	lp_tree_destroy(node->left);
+	if(node->right)	lp_tree_destroy(node->right);
+
+	free(node);
 }

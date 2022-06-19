@@ -14,27 +14,21 @@ typedef enum {	LP_TOK_UNKNOWN		  	= 0,
 			  	LP_TOK_TRUE				= 6, 
 			  	LP_TOK_FALSE			= 7	 } Tokentype;
 
-typedef enum {	LP_OP_AND		=  1,
-				LP_OP_OR		=  2,
-				LP_OP_IMPLIC	=  3,
+typedef enum {	LP_OP_AND		=  101,
+				LP_OP_OR		=  102,
+				LP_OP_IMPLIC	=  103,
 
-				LP_OP_NOT		=  4
+				LP_OP_NOT		=  104
 } Operator;
 
 typedef struct Token
 {
 	Tokentype 	ttype;
 	int 		tdetail;
+	char		name[64];
 } Token;
 
-const char *get_token_str(Token *token);
-int token_precedence_lookup(Token *token);
 
-typedef struct TokenLookupEntry
-{
-	Token token;
-	const char *identifier;
-} TokenLookupEntry;
 
 // dynamic array of tokens
 DYNAMIC_ARRAY_GEN_DECL(Token, tokens)
@@ -44,6 +38,13 @@ void token_print(Token *token);
 
 void DA_tokens_print(DA_tokens *arr);
 
+void token_copy(Token *dest, const Token *src);
+
+typedef struct TokenLookupEntry
+{
+	Token token;
+	const char *identifier;
+} TokenLookupEntry;
 #define TOKEN_TABLE_SIZE 8
 extern const TokenLookupEntry token_table[TOKEN_TABLE_SIZE];
 
