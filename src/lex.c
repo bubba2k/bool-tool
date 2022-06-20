@@ -9,19 +9,6 @@
 
 const char *blank_space = " \t";
 
-
-/* Quick hashing function for strings */
-unsigned long hash(char *str)
-{
-    unsigned long hash = 5381;
-    int c;
-
-    while ((c = *str++))
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-
-    return hash;
-}
-
 /* Check if char is a member of the given string. */
 int char_is_one_of(char c, const char *chars)
 {

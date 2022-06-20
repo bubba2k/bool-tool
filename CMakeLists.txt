@@ -26,6 +26,7 @@ target_sources(	parser PRIVATE
 				src/main.c
 				src/lex.c
 				src/parse.c
-				src/tokens.c   )
+				src/tokens.c
+				src/eval.c		)
 
 include_directories(${CMAKE_SOURCE_DIR})

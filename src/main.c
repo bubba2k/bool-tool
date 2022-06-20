@@ -3,6 +3,7 @@
 #include <string.h>
 #include "lex.h"
 #include "parse.h"
+#include "eval.h"
 
 int lp_getline(char *buf, int size, FILE *file)
 {
@@ -22,7 +23,7 @@ const char *expressions[5] = {	"(a && b) || c -> (a  && d)",
 								"j && k && 0 && 1",
 								"M || K && !u" };
 
-int parse_expression(const char * expr_str)
+int parse_expression_debug(const char * expr_str)
 {
 	int success = 1;
 	const size_t err_msg_size = 256;
@@ -61,8 +62,9 @@ int parse_expression(const char * expr_str)
 
 	printf("Expression print:\n");
 	lp_tree_print(tree);
-	printf("\n\n");
+	printf("\n");
 
+	lp_tree_print_truthtable(tree);
 
 	lp_tree_destroy(tree);
 
@@ -71,19 +73,56 @@ int parse_expression(const char * expr_str)
 	return 1;
 }
 
+void lp_easy_truthtable(const char *expr_str)
+{
+	int success = 1;
+	const size_t err_msg_size = 256;
+	char err_msg[err_msg_size];
+
+	/* Our array of tokens */
+	DA_tokens *tokens = DA_tokens_create(10);
+
+	/* Tokenization */
+	success = lex_expression(expr_str, tokens, err_msg, err_msg_size);
+	if(!success)
+	{
+		printf("Error while lexing expression \"%s\": %s\n", expr_str, err_msg);
+		DA_tokens_destroy(tokens);
+		return;
+	}
+
+	/* Check for correct grammar */
+	success = syntactically_correct(tokens, err_msg, err_msg_size);
+	if(!success)
+	{
+		printf("Error: Expression is not syntactically correct! %s\n", err_msg);
+		DA_tokens_destroy(tokens);
+		return;
+	}
+
+	TreeNode *tree = lp_tree_create(tokens);
+
+	lp_tree_print_truthtable(tree);
+
+	lp_tree_destroy(tree);
+	DA_tokens_destroy(tokens);
+}
+
 #define LP_LINE_MAX_SIZE 1024
 
 int main()
 {
+	char expr[LP_LINE_MAX_SIZE];
+
 	while(1)
 	{
 		printf("Enter your expression:\n");
 
-		char expr[LP_LINE_MAX_SIZE];
-
 		lp_getline(expr, LP_LINE_MAX_SIZE, stdin);
+		printf("\n");
 
-		parse_expression(expr);
+		lp_easy_truthtable(expr);
+		printf("\n");
 	}
 
 	return 0;
