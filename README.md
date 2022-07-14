@@ -4,8 +4,10 @@ A small CLI program that parses boolean expressions and prints their truth table
 Educational project for exploring BNF and recursive descent parsing.
 
 Example output:
+
     Enter your expression:
     a && b -> c
+    
 
      a | b | c |
     ---------------
