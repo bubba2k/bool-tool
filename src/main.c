@@ -23,7 +23,7 @@ const char *expressions[5] = {	"(a && b) || c -> (a  && d)",
 								"j && k && 0 && 1",
 								"M || K && !u" };
 
-int parse_expression_debug(const char * expr_str)
+int lp_parse_expression_debug(const char * expr_str)
 {
 	int success = 1;
 	const size_t err_msg_size = 256;
@@ -121,7 +121,13 @@ int main()
 		lp_getline(expr, LP_LINE_MAX_SIZE, stdin);
 		printf("\n");
 
+		// Debug mode or not
+#if DEBUG == 1
+		lp_parse_expression_debug(expr);
+#else
 		lp_easy_truthtable(expr);
+#endif
+
 		printf("\n");
 	}
 
