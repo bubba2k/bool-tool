@@ -141,7 +141,6 @@ TreeNode *parse_atom()
 
 		// Skip the parenthesis
 		scan_token();
-		scan_token();
 
 		return a;
 	}

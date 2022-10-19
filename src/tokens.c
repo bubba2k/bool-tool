@@ -14,16 +14,19 @@ const char *tokentype_get_str(TokenType tokentype)
 			return "UNKNOWN";
 			break;
 		case LP_TOK_VARIABLE:
-			return "Variable";
+			return "VARIABLE";
 			break;
 		case LP_TOK_PAR_OPEN:
-			return "Parenthesis Open";
+			return "PAR_OPEN";
+			break;
+		case LP_TOK_PAR_CLOSE:
+			return "PAR_CLOSE";
 			break;
 		case LP_TOK_TRUE:
-			return "True";
+			return "TRUE";
 			break;
 		case LP_TOK_FALSE:
-			return "False";
+			return "FALSE";
 			break;
 		case LP_TOK_AND:
 			return "AND";
