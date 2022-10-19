@@ -37,6 +37,9 @@ const char *tokentype_get_str(TokenType tokentype)
 		case LP_TOK_IMPLIC:
 			return "IMPLICATION";
 			break;
+		case LP_TOK_EQU:
+			return "EQUIVALENCE";
+			break;
 		case LP_TOK_NOT:
 			return "NOT";
 			break;
@@ -74,5 +77,6 @@ const Token token_table[TOKEN_TABLE_SIZE] =
 	{ .type = LP_TOK_AND, 		.name = "&&" },
 	{ .type = LP_TOK_OR, 		.name = "||" },
 	{ .type = LP_TOK_IMPLIC, 	.name = "->" },
+	{ .type = LP_TOK_EQU,		.name = "="  }
 };
 

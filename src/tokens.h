@@ -16,7 +16,8 @@ typedef enum {	LP_TOK_UNKNOWN		  	= 0,
 				LP_TOK_AND				= 6,
 				LP_TOK_OR				= 7,
 				LP_TOK_IMPLIC			= 8,
-				LP_TOK_NOT				= 9
+				LP_TOK_NOT				= 9,
+				LP_TOK_EQU				= 10
 } TokenType;
 
 typedef struct Token
@@ -36,7 +37,7 @@ void DA_tokens_print(DA_tokens *arr);
 
 void token_copy(Token *dest, const Token *src);
 
-#define TOKEN_TABLE_SIZE 8
+#define TOKEN_TABLE_SIZE 9
 extern const Token token_table[TOKEN_TABLE_SIZE];
 
 #endif

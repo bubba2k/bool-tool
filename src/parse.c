@@ -33,6 +33,7 @@ int scan_token()
 }
 
 TreeNode *parse_expr();
+TreeNode *parse_impl();
 TreeNode *parse_disj();
 TreeNode *parse_conj();
 TreeNode *parse_nega();
@@ -52,7 +53,22 @@ TreeNode *lp_tree_create(DA_tokens *_tokens)
 	return tree;
 }
 
-TreeNode *parse_expr()
+TreeNode *parse_expr() 
+{
+	TreeNode *a = parse_impl();
+
+	if(next_token->type == LP_TOK_EQU)
+	{
+		scan_token();
+		return lp_treenode_create(LP_TOK_EQU, "=", a, parse_expr());
+	}
+	else
+	{
+		return a;
+	}
+}
+
+TreeNode *parse_impl()
 {
 	TreeNode *a = parse_disj();
 

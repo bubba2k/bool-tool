@@ -151,6 +151,7 @@ AnalysisState resolve_state(Token *token)
 		case LP_TOK_AND: 			return BINARY_OP;	break;
 		case LP_TOK_OR:				return BINARY_OP;	break;
 		case LP_TOK_IMPLIC:			return BINARY_OP;	break;
+		case LP_TOK_EQU:			return BINARY_OP;	break;
 		case LP_TOK_VARIABLE:  		return ATOM;		break;
 		case LP_TOK_TRUE:		   	return ATOM;		break;
 		case LP_TOK_FALSE:		   	return ATOM;		break;

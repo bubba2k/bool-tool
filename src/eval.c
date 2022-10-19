@@ -46,6 +46,9 @@ int lp_tree_eval(TreeNode *node, DA_vars *vars)
 		case LP_TOK_IMPLIC:
 			return lp_tree_eval(node->left, vars) <= lp_tree_eval(node->right, vars);
 			break;
+		case LP_TOK_EQU:
+			return lp_tree_eval(node->left, vars) == lp_tree_eval(node->right, vars);
+			break;
 		case LP_TOK_NOT:
 			return !lp_tree_eval(node->left, vars);
 		case LP_TOK_TRUE:
@@ -71,9 +74,23 @@ void lp_tree_find_vars(TreeNode *node, DA_vars *vars)
 {
 	if(node->type == LP_TOK_VARIABLE)
 	{
-		Variable var = { .hash = hash(node->name), .val = 0 };
-		strcpy(var.name, node->name);
-		DA_vars_push_back(vars, &var);
+		int new = 1;
+		unsigned long hash_val = hash(node->name);
+
+		// We do not want any duplicates in the list!
+		for(size_t i = 0; i < vars->size; i++)
+		{
+			if(DA_vars_get(vars, i)->hash == hash_val)
+				new = 0;
+		}
+
+		// Only add variable to list if not available already
+		if(new)
+		{
+			Variable var = { .hash = hash_val, .val = 0 };
+			strcpy(var.name, node->name);
+			DA_vars_push_back(vars, &var);
+		}
 	}
 	
 	if(node->left)  lp_tree_find_vars(node->left,  vars);
