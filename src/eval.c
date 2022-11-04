@@ -1,4 +1,5 @@
 #include "eval.h"
+#include <string.h>
 
 typedef struct Variable
 {
@@ -97,12 +98,34 @@ void lp_tree_find_vars(TreeNode *node, DA_vars *vars)
 	if(node->right) lp_tree_find_vars(node->right, vars);
 }
 
+// Sorts the dynamic array of variables alphabetically according to their names
+void DA_vars_sort(DA_vars *vars)
+{
+	int sorted = 1;
+	do
+	{
+		sorted = 1;
+		for(size_t i = 0; i < vars->size - 1; i++)
+		{
+			if(strcmp(vars->data[i].name, vars->data[i+1].name) > 0)
+			{
+				struct Variable tmp = vars->data[i];
+				vars->data[i] 		= vars->data[i+1];
+				vars->data[i+1] 	= tmp;
+
+				sorted = 0;
+			}
+		}
+	} while (!sorted);
+}
+
 void lp_tree_print_truthtable(TreeNode *tree)
 {
-
-	// TODO: Sort variables alphabetically
 	DA_vars *vars = DA_vars_create(10);
 	lp_tree_find_vars(tree, vars);
+
+	DA_vars_sort(vars);
+	
 
 	if(vars->size == 0) // Can't print table without variables
 	{
