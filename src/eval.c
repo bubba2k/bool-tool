@@ -99,6 +99,8 @@ void lp_tree_find_vars(TreeNode *node, DA_vars *vars)
 
 void lp_tree_print_truthtable(TreeNode *tree)
 {
+
+	// TODO: Sort variables alphabetically
 	DA_vars *vars = DA_vars_create(10);
 	lp_tree_find_vars(tree, vars);
 
@@ -124,6 +126,7 @@ void lp_tree_print_truthtable(TreeNode *tree)
 	
 	// A little hack to generate all possible rows
 	// (Yes, this will fail and explode if there are more than 64 variables)
+	// TODO: Invert table
 	unsigned long num_rows = lp_pow(2, vars->size);
 	unsigned long i = 0;
 	for(i = 0; i < num_rows; i++)
