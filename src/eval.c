@@ -154,10 +154,15 @@ void lp_tree_print_truthtable(TreeNode *tree)
 	unsigned long i = 0;
 	for(i = 0; i < num_rows; i++)
 	{
+		// Update the variable values
 		for(size_t j = 0; j < vars->size; j++)
 		{
-			// Update the variables names
-			vars->data[j].val = (i >> j) & 0x1;
+			vars->data[vars->size - j - 1].val = (i >> j) & 0x1;
+		}
+
+		// Print the variable names
+		for(size_t j = 0; j < vars->size; j++)
+		{
 			int len = strlen(vars->data[j].name) - 1;
 			while(len--) printf(" ");
 			printf(" %d |", vars->data[j].val);
