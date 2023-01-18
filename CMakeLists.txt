@@ -6,7 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(parser)
 
-if(DEBUG)
+if($CMAKE_BUILD_TYPE STREQUAL "Debug")
 	add_compile_definitions(DEBUG=1)
 	if(MSVC)
 	  target_compile_options(parser PRIVATE /W4 /WX)
