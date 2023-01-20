@@ -101,6 +101,10 @@ void lp_tree_find_vars(TreeNode *node, DA_vars *vars)
 // Sorts the dynamic array of variables alphabetically according to their names
 void DA_vars_sort(DA_vars *vars)
 {
+	// Do not attempt to sort empty array
+	if(vars->size == 0)
+		return;
+
 	int sorted = 1;
 	do
 	{
