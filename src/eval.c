@@ -23,8 +23,12 @@ unsigned long hash(char *str)
     return hash;
 }
 
+/* A simple pow function for unsigned integers, so we do not
+   have to link the math library. */
 unsigned lp_pow(unsigned a, unsigned b)
 {
+    if(b == 0) return 1;
+
 	int res = a;
 	while(--b) res *= a;
 
