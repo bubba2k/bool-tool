@@ -57,6 +57,9 @@ int lp_parse_expression_debug(const char * expr_str)
 
 	TreeNode *tree = lp_tree_create(tokens);
 
+    // Ignore empty trees
+    if(tree == NULL) return 1;
+
 	printf("Raw tree print:\n");
 	lp_tree_print_raw(tree);
 
