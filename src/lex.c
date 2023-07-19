@@ -46,7 +46,7 @@ int parse_variable(const char *pos, char **var_str_ptr, int *len)
 	*var_str_ptr = (char *) calloc(64, 1); // Max var length is 64
 	unsigned int i = 0;
 	
-	while(isalpha(*pos) && i < 64)
+	while((isalnum(*pos) || *pos == '_' ) && i < 64)
 	{
 		(*var_str_ptr)[i++] = *pos++;
 	}
