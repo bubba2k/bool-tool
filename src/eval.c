@@ -102,7 +102,7 @@ void lp_tree_find_vars(TreeNode *node, DA_vars *vars)
 	if(node->right) lp_tree_find_vars(node->right, vars);
 }
 
-// Sorts the dynamic array of variables alphabetically according to their names
+// Sorts the dynamic array of variables in reverse alphabetical order
 void DA_vars_sort(DA_vars *vars)
 {
 	// Do not attempt to sort empty array
@@ -115,7 +115,7 @@ void DA_vars_sort(DA_vars *vars)
 		sorted = 1;
 		for(size_t i = 0; i < vars->size - 1; i++)
 		{
-			if(strcmp(vars->data[i].name, vars->data[i+1].name) > 0)
+			if(strcmp(vars->data[i].name, vars->data[i+1].name) < 0)
 			{
 				struct Variable tmp = vars->data[i];
 				vars->data[i] 		= vars->data[i+1];
