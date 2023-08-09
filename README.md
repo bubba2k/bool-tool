@@ -9,8 +9,8 @@ Prints the truth table of arbitrary propositional propositional formulas to your
 | TRUE | 1 |
 | FALSE | 0 |
 | NEGATION | ! |
-| AND | && |
-| OR | \|\| |
+| AND | & |
+| OR | \| |
 | IMPLICATION | -> |
 | EQUIVALENCE | = |
 

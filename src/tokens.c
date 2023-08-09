@@ -74,8 +74,8 @@ const Token token_table[TOKEN_TABLE_SIZE] =
 	{ .type = LP_TOK_PAR_OPEN,  .name = "("  },
 	{ .type = LP_TOK_PAR_CLOSE, .name = ")"  },
 	{ .type = LP_TOK_NOT, 		.name = "!"  },
-	{ .type = LP_TOK_AND, 		.name = "&&" },
-	{ .type = LP_TOK_OR, 		.name = "||" },
+	{ .type = LP_TOK_AND, 		.name = "&" },
+	{ .type = LP_TOK_OR, 		.name = "|" },
 	{ .type = LP_TOK_IMPLIC, 	.name = "->" },
 	{ .type = LP_TOK_EQU,		.name = "="  }
 };

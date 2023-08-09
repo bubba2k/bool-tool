@@ -1,6 +1,6 @@
 <expr> ::= <impl> "="  <expr> | <impl>
 <impl> ::= <disj> "->" <impl> | <disj>
-<disj> ::= <conj> "||" <disj> | <conj>
-<conj> ::= <nega> "&&" <conj> | <nega>
+<disj> ::= <conj> "|" <disj> | <conj>
+<conj> ::= <nega> "&" <conj> | <nega>
 <nega> ::= "!" <nega> | <atom>
 <atom> ::= "1" | "0"  | [a-z][a-z0-9_]* | "(" <expr> ")"
