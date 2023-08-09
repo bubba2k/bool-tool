@@ -3,4 +3,4 @@
 <disj> ::= <conj> "||" <disj> | <conj>
 <conj> ::= <nega> "&&" <conj> | <nega>
 <nega> ::= "!" <nega> | <atom>
-<atom> ::= "1" | "0"  | [a-z0-9_]+ | "(" <expr> ")"
+<atom> ::= "1" | "0"  | [a-z][a-z0-9_]* | "(" <expr> ")"

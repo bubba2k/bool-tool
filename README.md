@@ -18,7 +18,7 @@ With precedence as the table suggests.
 Note that the implication operator is right associative, but for clarity's sake it is best not to rely on that and use parenthesis instead.
 
 ##### Variables
-The program can handle up to 64 arbitrary length variables. Variable names must be alphanumerical, are case sensitive and can contain underscores.
+The program can handle up to 64 arbitrary length variables. Variable names are alphanumerical, case sensitive and can contain underscores, but must start with an alphabetic character.
 
 
 ### Usage
