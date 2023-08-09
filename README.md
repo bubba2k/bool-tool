@@ -8,7 +8,7 @@ Prints the truth table of arbitrary propositional formulas to your terminal.
 | -- | -- |
 | TRUE | 1 |
 | FALSE | 0 |
-| NEGATION | ! |
+| NOT | ! |
 | AND | & |
 | OR | \| |
 | IMPLICATION | -> |
