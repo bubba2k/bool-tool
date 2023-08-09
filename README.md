@@ -28,10 +28,10 @@ Upon executing the program, you will be greeted with a prompt. Simply enter your
 An example:
 
 		Enter your expression:
-		(b && a) -> c
+		(b & a) -> c
 
 
-		 a | b | c |
+		 c | b | a |
 		---------------
 		 0 | 0 | 0 | 1
 		 1 | 0 | 0 | 1
