@@ -1,6 +1,6 @@
 # Logic Parser
 A simple CLI parser and evaluator for boolean expressions, written in C99.
-Prints the truth table of arbitrary propositional propositional formulas to your terminal.
+Prints the truth table of arbitrary propositional formulas to your terminal.
 
 ### Syntax
 ##### Operators
