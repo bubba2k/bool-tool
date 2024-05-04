@@ -6,7 +6,7 @@ TreeNode *lp_treenode_create(int type, const char *name, TreeNode *_left, TreeNo
 {
 	TreeNode *node = malloc(sizeof(TreeNode));
 	node->type 		= type;
-	snprintf(node->name, 63, "%s", name);
+	snprintf(node->name, 64, "%s", name);
 
 	node->left  = _left;
 	node->right = _right;
