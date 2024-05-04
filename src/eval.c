@@ -1,40 +1,6 @@
 #include "eval.h"
 #include <string.h>
 
-typedef struct Variable
-{
-	char name[64];
-	unsigned long hash;
-	int val;
-} Variable;
-
-DYNAMIC_ARRAY_GEN_DECL(Variable, vars)
-DYNAMIC_ARRAY_GEN_IMPL(Variable, vars)
-
-/* Quick hashing function for strings */
-unsigned long hash(char *str)
-{
-    unsigned long hash = 5381;
-    int c;
-
-    while ((c = *str++))
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-
-    return hash;
-}
-
-/* A simple pow function for unsigned integers, so we do not
-   have to link the math library. */
-unsigned lp_pow(unsigned a, unsigned b)
-{
-    if(b == 0) return 1;
-
-	int res = a;
-	while(--b) res *= a;
-
-	return res;
-}
-
 int lp_tree_eval(TreeNode *node, DA_vars *vars)
 {
 	switch(node->type)
@@ -75,57 +41,7 @@ int lp_tree_eval(TreeNode *node, DA_vars *vars)
 	return 0;
 }
 
-void lp_tree_find_vars(TreeNode *node, DA_vars *vars)
-{
-	if(node->type == LP_TOK_VARIABLE)
-	{
-		int new = 1;
-		unsigned long hash_val = hash(node->name);
 
-		// We do not want any duplicates in the list!
-		for(size_t i = 0; i < vars->size; i++)
-		{
-			if(DA_vars_get(vars, i)->hash == hash_val)
-				new = 0;
-		}
-
-		// Only add variable to list if not available already
-		if(new)
-		{
-			Variable var = { .hash = hash_val, .val = 0 };
-			strcpy(var.name, node->name);
-			DA_vars_push_back(vars, &var);
-		}
-	}
-	
-	if(node->left)  lp_tree_find_vars(node->left,  vars);
-	if(node->right) lp_tree_find_vars(node->right, vars);
-}
-
-// Sorts the dynamic array of variables in reverse alphabetical order
-void DA_vars_sort(DA_vars *vars)
-{
-	// Do not attempt to sort empty array
-	if(vars->size == 0)
-		return;
-
-	int sorted = 1;
-	do
-	{
-		sorted = 1;
-		for(size_t i = 0; i < vars->size - 1; i++)
-		{
-			if(strcmp(vars->data[i].name, vars->data[i+1].name) < 0)
-			{
-				struct Variable tmp = vars->data[i];
-				vars->data[i] 		= vars->data[i+1];
-				vars->data[i+1] 	= tmp;
-
-				sorted = 0;
-			}
-		}
-	} while (!sorted);
-}
 
 void lp_tree_print_truthtable(TreeNode *tree)
 {

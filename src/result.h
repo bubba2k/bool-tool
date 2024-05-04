@@ -1,0 +1,4 @@
+#ifndef BT_RESULT_H_INCLUDED
+#define BT_RESULT_H_INCLUDED
+
+#endif

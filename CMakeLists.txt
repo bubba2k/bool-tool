@@ -29,6 +29,6 @@ target_sources(	booltool PRIVATE
 				src/lex.c
 				src/parse.c
 				src/tokens.c
-				src/eval.c		)
+				src/formula.c		)
 
 include_directories(${CMAKE_SOURCE_DIR})

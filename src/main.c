@@ -1,9 +1,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include "lex.h"
-#include "parse.h"
-#include "eval.h"
+
+#include "formula.h"
 
 int lp_getline(char *buf, int size, FILE *file)
 {
@@ -25,90 +24,48 @@ const char *expressions[5] = {	"(a && b) || c -> (a  && d)",
 
 int lp_parse_expression_debug(const char * expr_str)
 {
-	int success = 1;
 	const size_t err_msg_size = 256;
 	char err_msg[err_msg_size];
 
-	/* Our array of tokens */
-	DA_tokens *tokens = DA_tokens_create(10);
+    /* Attempt to create a formula from the given expression
+     * string. */
+    BT_Formula *formula = bt_formula_create(expr_str, 
+                          err_msg, err_msg_size);
+    if(formula == NULL) {
+        fprintf(stdout, "Failed to construct syntax "
+                "tree from expression '%s': %s", 
+                expr_str, err_msg);
+        return 0;
+    }
 
-	printf("Parsing expression \"%s\"...\n", expr_str);
-
-	/* Tokenization */
-	success = lex_expression(expr_str, tokens, err_msg, err_msg_size);
-	if(!success)
-	{
-		printf("Error while lexing expression \"%s\": %s\n", expr_str, err_msg);
-		DA_tokens_destroy(tokens);
-		return 0;
-	}
-	printf("Tokenization stage successful:\n");
-	DA_tokens_print(tokens);
-
-	/* Check for correct grammar */
-	success = syntactically_correct(tokens, err_msg, err_msg_size);
-	if(!success)
-	{
-		printf("Error: Expression is not syntactically correct! %s\n", err_msg);
-		DA_tokens_destroy(tokens);
-		return 0;
-	}
-	printf("Expression is syntactically correct!\nBuilding syntax tree...\n\n");
-
-	TreeNode *tree = lp_tree_create(tokens);
-
-    // Ignore empty trees
-    if(tree == NULL) return 1;
+    printf("Variables in formula:\n");
+    bt_formula_print_vars(formula);
 
 	printf("Raw tree print:\n");
-	lp_tree_print_raw(tree);
+	lp_tree_print_raw(formula->syntax_tree);
 
 	printf("Expression print:\n");
-	lp_tree_print(tree);
+	lp_tree_print(formula->syntax_tree);
 	printf("\n");
 
-	lp_tree_print_truthtable(tree);
+    
 
-	lp_tree_destroy(tree);
-
-	DA_tokens_destroy(tokens);
+    bt_formula_destroy(formula);
 
 	return 1;
 }
 
 void lp_easy_truthtable(const char *expr_str)
 {
-	int success = 1;
 	const size_t err_msg_size = 256;
 	char err_msg[err_msg_size];
 
-	/* Our array of tokens */
-	DA_tokens *tokens = DA_tokens_create(10);
+    /* Attempt to create a formula from the given expression
+     * string. */
+    BT_Formula *formula = bt_formula_create(expr_str, 
+                          err_msg, err_msg_size);
 
-	/* Tokenization */
-	success = lex_expression(expr_str, tokens, err_msg, err_msg_size);
-	if(!success)
-	{
-		printf("Error while lexing expression \"%s\": %s\n", expr_str, err_msg);
-		DA_tokens_destroy(tokens);
-		return;
-	}
-
-	/* Check for correct grammar */
-	success = syntactically_correct(tokens, err_msg, err_msg_size);
-	if(!success)
-	{
-		printf("Error: Expression is not syntactically correct! %s\n", err_msg);
-		DA_tokens_destroy(tokens);
-		return;
-	}
-
-	TreeNode *tree = lp_tree_create(tokens);
-
-	lp_tree_print_truthtable(tree);
-
-	lp_tree_destroy(tree);
-	DA_tokens_destroy(tokens);
+    bt_formula_destroy(formula);
 }
 
 #define LP_LINE_MAX_SIZE 1024
