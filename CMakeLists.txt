@@ -26,6 +26,7 @@ endif()
 
 target_sources(	booltool PRIVATE
 				src/main.c
+                src/bitfield.c
 				src/lex.c
 				src/parse.c
 				src/tokens.c
