@@ -21,6 +21,14 @@ const char *expressions[5] = {	"(a && b) || c -> (a  && d)",
 								"a 1 w w a 0 d && d",
 								"j && k && 0 && 1",
 								"M || K && !u" };
+void print_bits(uint64_t num)
+{
+   for(int bit=0;bit<(sizeof(uint64_t) * 8); bit++)
+   {
+      printf("%lu", num & 0x01);
+      num = num >> 1;
+   }
+}
 
 int lp_parse_expression_debug(const char * expr_str)
 {
@@ -48,7 +56,9 @@ int lp_parse_expression_debug(const char * expr_str)
 	lp_tree_print(formula->syntax_tree);
 	printf("\n");
 
-    
+    uint64_t truths = bt_formula_eval_truths(formula);
+    print_bits(truths);
+    printf("\n");
 
     bt_formula_destroy(formula);
 

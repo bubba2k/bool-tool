@@ -28,6 +28,7 @@ BT_Formula *bt_formula_create(const char *expr,
         char *err_msg, size_t err_msg_size);
 void bt_formula_destroy(BT_Formula *);
 void bt_formula_print_vars(BT_Formula *);
+uint64_t bt_formula_eval_truths(BT_Formula *);
 
 
 #endif

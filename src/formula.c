@@ -26,7 +26,7 @@ void DA_vars_print(DA_vars *arr)
 
 /* A simple pow function for unsigned integers, so we do not
    have to link the math library. */
-unsigned lp_pow(unsigned a, unsigned b)
+unsigned bt_pow(unsigned a, unsigned b)
 {
     if(b == 0) return 1;
 
@@ -77,6 +77,46 @@ void lp_tree_find_vars(TreeNode *node, DA_vars *vars)
 	
 	if(node->left)  lp_tree_find_vars(node->left,  vars);
 	if(node->right) lp_tree_find_vars(node->right, vars);
+}
+
+int lp_tree_eval(TreeNode *node, DA_vars *vars)
+{
+	switch(node->type)
+	{
+		default:
+			fprintf(stderr, "Critical error in eval: Unknown node type.\n");
+			break;
+		case LP_TOK_AND:
+			return lp_tree_eval(node->left, vars) &  lp_tree_eval(node->right, vars);
+			break;
+		case LP_TOK_OR:
+			return lp_tree_eval(node->left, vars) |  lp_tree_eval(node->right, vars);
+			break;
+		case LP_TOK_IMPLIC:
+			return lp_tree_eval(node->left, vars) <= lp_tree_eval(node->right, vars);
+			break;
+		case LP_TOK_EQU:
+			return lp_tree_eval(node->left, vars) == lp_tree_eval(node->right, vars);
+			break;
+		case LP_TOK_NOT:
+			return !lp_tree_eval(node->left, vars);
+		case LP_TOK_TRUE:
+			return 1;
+			break;
+		case LP_TOK_FALSE:
+			return 0;
+			break;
+		case LP_TOK_VARIABLE:
+			for(size_t i = 0; i < vars->size; i++)
+			{
+				if(vars->data[i].hash == hash(node->name))
+					return vars->data[i].val;
+			}
+			fprintf(stderr, "ERROR: Var not found!");
+			break;
+	}
+	
+	return 0;
 }
 
 /* Sorts the dynamic array of variables in reverse alphabetical 
@@ -168,4 +208,56 @@ void bt_formula_destroy(BT_Formula *formula)
 void bt_formula_print_vars(BT_Formula *formula)
 {
     DA_vars_print(formula->variables);
+}
+
+uint64_t bt_formula_eval_truths(BT_Formula *formula)
+{
+    /* A truth table is of the form:
+     *  b a | f | i
+     *  -----------
+     *  0 0 | 0 | 0
+     *  0 1 | 1 | 1
+     *  1 0 | 1 | 2
+     *  1 1 | 1 | 3
+     *
+     *  where f is the formula, i is the index of the row.
+     *  Results are encoded in a bitfield, such that
+     *  (bitfield & (1 << i))  =  truth value of row.
+     */ 
+
+    const unsigned n_vars = formula->variables->size;
+    /* The number of rows in the truth table is equal to
+     * 2^(|variables|). */
+    const unsigned n_rows = bt_pow(2, n_vars);
+    uint64_t bitfield = 0;
+    
+    /* Step through each row of the truth table, calculate
+     * its value, then move on. */
+    unsigned long long i = 0;
+    for(i = 0; i < n_rows; i++)
+    {
+        /* The bits of i itself are the truth values we want to
+         * assign to the variables for each row.
+         * Loop through each variable and assign them the correct
+         * truth value. */
+        for(size_t j = 0; j < n_vars; j++)
+        {
+            /* The variable of interest: Invert the index,
+             * because in the truth table, variables are in 
+             * reverse lexicographic order. */
+            unsigned var_idx = n_vars - j - 1;
+            Variable *var = (formula->variables->data + var_idx);
+            /* Now simply assign the truth value. */
+            var->val = (i & (1ul << j)) ? 1 : 0;
+        }
+        /* Once the values of the variables are set, run the eval
+         * procedure on the tree. */
+        const int row_truth = lp_tree_eval(formula->syntax_tree,
+                                           formula->variables);
+        
+        /* Set the bit in the bitfield accordingly. */
+        bitfield |= (row_truth) ? (1 << i) : 0;
+    }
+
+    return bitfield;
 }

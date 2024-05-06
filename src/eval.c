@@ -1,45 +1,6 @@
 #include "eval.h"
 #include <string.h>
 
-int lp_tree_eval(TreeNode *node, DA_vars *vars)
-{
-	switch(node->type)
-	{
-		default:
-			fprintf(stderr, "Critical error in eval: Unknown node type.\n");
-			break;
-		case LP_TOK_AND:
-			return lp_tree_eval(node->left, vars) &  lp_tree_eval(node->right, vars);
-			break;
-		case LP_TOK_OR:
-			return lp_tree_eval(node->left, vars) |  lp_tree_eval(node->right, vars);
-			break;
-		case LP_TOK_IMPLIC:
-			return lp_tree_eval(node->left, vars) <= lp_tree_eval(node->right, vars);
-			break;
-		case LP_TOK_EQU:
-			return lp_tree_eval(node->left, vars) == lp_tree_eval(node->right, vars);
-			break;
-		case LP_TOK_NOT:
-			return !lp_tree_eval(node->left, vars);
-		case LP_TOK_TRUE:
-			return 1;
-			break;
-		case LP_TOK_FALSE:
-			return 0;
-			break;
-		case LP_TOK_VARIABLE:
-			for(size_t i = 0; i < vars->size; i++)
-			{
-				if(vars->data[i].hash == hash(node->name))
-					return vars->data[i].val;
-			}
-			fprintf(stderr, "ERROR: Var not found!");
-			break;
-	}
-	
-	return 0;
-}
 
 
 
