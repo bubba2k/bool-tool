@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "parse.h"
+#include "bitfield.h"
 
 typedef struct Variable {
 	char name[64];
@@ -20,15 +21,13 @@ typedef struct BT_Formula
     TreeNode *syntax_tree;
     /* A list of each (unique) variable present in the formula. */
     DA_vars *variables;
-    /* The 'truth table' of the expression. */
-    uint64_t truths;
 } BT_Formula;
 
 BT_Formula *bt_formula_create(const char *expr,
         char *err_msg, size_t err_msg_size);
 void bt_formula_destroy(BT_Formula *);
 void bt_formula_print_vars(BT_Formula *);
-uint64_t bt_formula_eval_truths(BT_Formula *);
+Bitfield *bt_formula_eval_truths(BT_Formula *);
 
 
 #endif

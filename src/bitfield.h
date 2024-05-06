@@ -27,5 +27,9 @@ void bitfield_destroy(Bitfield *bitfield);
 int bitfield_get_at(Bitfield *bitfield, size_t n);
 /* Sets the bit at index @n to @value (which acts as a bool). */
 void bitfield_set_at(Bitfield *bitfield, size_t n, int value);
+/* Print a bitfields value bit for bit. (Little Endian) */
+void bitfield_print_le(Bitfield *bitfield);
+/* Print a bitfields value bit for bit. (Big Endian) */
+void bitfield_print_be(Bitfield *bitfield);
 
 #endif

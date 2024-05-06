@@ -1,5 +1,7 @@
 #include "bitfield.h"
 
+#include <stdio.h>
+
 /* Create a bitfield of @size bits. */
 Bitfield *bitfield_create(size_t size)
 {
@@ -10,6 +12,9 @@ Bitfield *bitfield_create(size_t size)
     /* Then allocate that many ints. */
     Bitfield *bitfield = malloc(sizeof(Bitfield) 
                          + (num_ints * sizeof(BITFIELD_INT_TYPE)));
+
+    /* Set the size. */
+    bitfield->size = size;
 
     return bitfield;
 }
@@ -31,7 +36,7 @@ int bitfield_get_at(Bitfield *bitfield, size_t n)
      * to retrieve the bit of interest. */
 	BITFIELD_INT_TYPE mask 	= ((BITFIELD_INT_TYPE) 0x1) << bit_idx;
 
-	return mask & bitfield->ints[int_idx];
+	return (mask & bitfield->ints[int_idx]) ? 0x1 : 0x0;
 }
 
 /* Sets the bit at index @n to @value (which acts as a bool). */
@@ -53,3 +58,21 @@ void bitfield_set_at(Bitfield *bitfield, size_t n, int value)
         bitfield->ints[int_idx] &= ~mask;
     }
 }
+
+void bitfield_print_be(Bitfield *bitfield)
+{
+    for(size_t i = 0; i < bitfield->size; i++) {
+        printf("%u", bitfield_get_at(bitfield, i) ? 1 : 0);
+    }
+    printf("\n");
+}
+
+void bitfield_print_le(Bitfield *bitfield)
+{
+    const size_t size = bitfield->size;
+    for(size_t i = 0; i < size; i++) {
+        printf("%u", bitfield_get_at(bitfield, size - i - 1) ? 1 : 0);
+    }
+    printf("\n");
+}
+

@@ -183,7 +183,6 @@ BT_Formula *bt_formula_create(const char *expr_str, char *err_msg, size_t err_ms
     BT_Formula *formula = malloc(sizeof(BT_Formula));
     formula->syntax_tree = tree;
     formula->variables   = vars;
-    formula->truths      = 0;
 
     /* Free the token array. */
 	DA_tokens_destroy(tokens);
@@ -210,7 +209,7 @@ void bt_formula_print_vars(BT_Formula *formula)
     DA_vars_print(formula->variables);
 }
 
-uint64_t bt_formula_eval_truths(BT_Formula *formula)
+Bitfield *bt_formula_eval_truths(BT_Formula *formula)
 {
     /* A truth table is of the form:
      *  b a | f | i
@@ -229,7 +228,7 @@ uint64_t bt_formula_eval_truths(BT_Formula *formula)
     /* The number of rows in the truth table is equal to
      * 2^(|variables|). */
     const unsigned n_rows = bt_pow(2, n_vars);
-    uint64_t bitfield = 0;
+    Bitfield *bitfield_result = bitfield_create(n_rows);
     
     /* Step through each row of the truth table, calculate
      * its value, then move on. */
@@ -250,14 +249,15 @@ uint64_t bt_formula_eval_truths(BT_Formula *formula)
             /* Now simply assign the truth value. */
             var->val = (i & (1ul << j)) ? 1 : 0;
         }
+
         /* Once the values of the variables are set, run the eval
          * procedure on the tree. */
         const int row_truth = lp_tree_eval(formula->syntax_tree,
                                            formula->variables);
         
         /* Set the bit in the bitfield accordingly. */
-        bitfield |= (row_truth) ? (1 << i) : 0;
+        bitfield_set_at(bitfield_result, i, row_truth);
     }
 
-    return bitfield;
+    return bitfield_result;
 }
