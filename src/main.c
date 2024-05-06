@@ -16,16 +16,18 @@ int lp_getline(char *buf, int size, FILE *file)
 	return 1;
 }
 
-const char *expressions[5] = {	"(a && b) || c -> (a  && d)",
-								"(1 && b) || adc && e || (e)",
-								"a 1 w w a 0 d && d",
-								"j && k && 0 && 1",
-								"M || K && !u" };
+const char *expressions[5] = {	"(a & b) || c -> (a  & d)",
+								"(1 & b) || adc & e || (e)",
+								"a 1 w w a 0 d & d",
+								"j & k & 0 & 1",
+								"M | K & !u" };
 
-int lp_parse_expression_debug(const char * expr_str)
+int lp_parse_expression_debug(const char *expr_str)
 {
 	const size_t err_msg_size = 256;
 	char err_msg[err_msg_size];
+
+    printf("[ Processing '%s' ]\n", expr_str);
 
     /* Attempt to create a formula from the given expression
      * string. */
@@ -33,7 +35,7 @@ int lp_parse_expression_debug(const char * expr_str)
                           err_msg, err_msg_size);
     if(formula == NULL) {
         fprintf(stdout, "Failed to construct syntax "
-                "tree from expression '%s': %s", 
+                "tree from expression '%s': %s\n", 
                 expr_str, err_msg);
         return 0;
     }
@@ -75,6 +77,10 @@ void lp_easy_truthtable(const char *expr_str)
 
 int main()
 {
+#if DEBUG == 1
+    for(unsigned i = 0; i < 5; i++)
+        lp_parse_expression_debug(expressions[i]);
+#endif
 	char expr[LP_LINE_MAX_SIZE];
 
 	while(1)
@@ -86,6 +92,7 @@ int main()
 
 		// Debug mode or not
 #if DEBUG == 1
+
 		lp_parse_expression_debug(expr);
 #else
 		lp_easy_truthtable(expr);
