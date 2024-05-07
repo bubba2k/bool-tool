@@ -30,16 +30,23 @@ An example:
     Enter your expression:
     (a & b) -> c
 
-     c | b | a |
+     a | b | c |
     ---------------
      0 | 0 | 0 | 1
      0 | 0 | 1 | 1
      0 | 1 | 0 | 1
-     0 | 1 | 1 | 0
+     0 | 1 | 1 | 1
      1 | 0 | 0 | 1
      1 | 0 | 1 | 1
-     1 | 1 | 0 | 1
+     1 | 1 | 0 | 0
      1 | 1 | 1 | 1
+
+    Canonical CNF:
+    (!a & !b & !c) | (a & !b & !c) | (!a & b & !c) | 
+    (a & b & !c) | (!a & !b & c) | (a & !b & c) | (a & b & c)
+
+    Canonical DNF:
+    (a | !b | !c)
 
 ### Building
 Quite straight forward, move into the root directory of the project and do:
