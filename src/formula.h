@@ -32,6 +32,8 @@ void bt_formula_print_vars(BT_Formula *);
 void bt_formula_print_truth_table(BT_Formula *);
 Bitfield *bt_formula_eval_truths(BT_Formula *);
 
-
+/* Print normal forms of a formula. */
+void bt_formula_print_cdnf(BT_Formula *formula);
+void bt_formula_print_ccnf(BT_Formula *formula);
 
 #endif

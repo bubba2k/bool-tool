@@ -312,3 +312,103 @@ Bitfield *bt_formula_eval_truths(BT_Formula *formula)
 
     return bitfield_result;
 }
+
+
+/* A function for printing a set of terms, connected by the given
+ * inner/outer operators. Practically this is only used for printing
+ * CNFs / DNFs as of now. */
+void bt_normal_form_print(uint64_t *terms, const size_t n_terms, DA_vars *vars,
+                          const char *inner_op, const char *outer_op)
+{
+    const size_t n_vars = vars->size;
+
+    /* Loop over all terms. */
+    for(size_t i = 0; i < n_terms; i++)
+    {
+        printf("(");
+        for(size_t j = 0; j < n_vars; j++)
+        {
+            /* The name of the variable. */
+            const char* name = DA_vars_get(vars, j)->name;
+            /* Truth value of the current variable: */
+            const int truth = terms[i] & (0x1 << j);
+            if(!truth) printf("!");
+
+            /* Do not append the operator symbol if this is the last variable
+             * of the inner term. */
+            if(j == n_vars - 1) printf("%s", name);
+            else                printf("%s %s ", name, inner_op);
+        }
+        /* Do not append the operator symbol if this is the last inner term
+         * of the outer term. */
+        if(i == n_terms - 1) printf(")");
+        else                        printf(") %s ", outer_op);
+    }
+    printf("\n\n");
+}
+
+/* Pretty print a set of CNF / DNF. Takes a list of conjunction /
+ * disjunction terms (represented as bitfields) and a sorted list
+ * of variable names as input.  */
+void bt_cdnf_print(uint64_t *terms, size_t n_terms, DA_vars *vars)
+{
+    bt_normal_form_print(terms, n_terms, vars, "&", "|");
+}
+
+void bt_ccnf_print(uint64_t *terms, size_t n_terms, DA_vars *vars)
+{
+    bt_normal_form_print(terms, n_terms, vars, "|", "&");
+}
+
+/* Return a new formula containing the canonical
+ * DNF of the given formula. */
+void bt_formula_print_cdnf(BT_Formula *formula)
+{
+    /* Loop over all rows of the truth table that are true.
+     * For each, create a conjunction which represents
+     * the row. Then, OR them all together. */
+    Bitfield *bitfield = formula->truths;
+    const size_t n_rows = bitfield->size;
+    /* Represent the conjunctions as bitfields for now.
+     * We need exactly as many as there are ONEs in the truth table. */
+    size_t n_conjunctions  = bitfield_sum(bitfield);
+    uint64_t *conjunctions = malloc(sizeof(uint64_t) * n_conjunctions);
+    size_t conj_idx = 0;
+    /* Loop over all rows of the truth table and extract those that
+     * produce 'true'. These are the conjunctions in our CDNF.     */
+    for(size_t i = 0; i < n_rows; i++)
+        if(bitfield_get_at(bitfield, i)) conjunctions[conj_idx++] = i;
+
+    /* Now simply print them. */
+    bt_cdnf_print(conjunctions, n_conjunctions, formula->variables);
+    
+    free(conjunctions);
+}
+
+/* Return a new formula containing the canonical
+ * CNF of the given formula. */
+void bt_formula_print_ccnf(BT_Formula *formula)
+{
+    /* Loop over all rows of the truth table that are true.
+     * For each, create a disjunction which represents
+     * the row. Then, AND them all together. 
+     * All in all, this is almost identical to finding the 
+     * CDNF. */
+    Bitfield *bitfield = formula->truths;
+    const size_t n_rows = bitfield->size;
+    /* Represent the disjunctions as bitfields for now.
+     * We need exactly as many as there are ZEROs in the truth table. */
+    size_t n_disjunctions  = bitfield->size - bitfield_sum(bitfield);
+    uint64_t *disjunctions = malloc(sizeof(uint64_t) * n_disjunctions);
+    size_t disj_idx = 0;
+    /* Loop over all rows of the truth table and extract those that
+     * produce 'false'. These are the disjunctions in our CCNF. 
+     * Also flip all the truth bits of the variables in the row. */
+    for(size_t i = 0; i < n_rows; i++)
+        if(!bitfield_get_at(bitfield, i)) disjunctions[disj_idx++] = ~i;
+
+    /* Now simply print them. */
+    bt_ccnf_print(disjunctions, n_disjunctions, formula->variables);
+    
+    free(disjunctions);
+}

@@ -32,12 +32,7 @@ int bitfield_get_at(Bitfield *bitfield, size_t n)
 	unsigned int_idx = n / BITFIELD_INT_SIZE;
 	unsigned bit_idx = n % BITFIELD_INT_SIZE;
 
-	/* Construct the mask and the get the int to be masked 
-     * to retrieve the bit of interest. */
-	BITFIELD_INT_TYPE mask 	= ((BITFIELD_INT_TYPE) 0x1) << bit_idx;
-
-	return (mask & bitfield->ints[int_idx]) ? 0x1 : 0x0;
-}
+	/* Construct the mask and the get the int to be masked to retrieve the bit of interest. */ BITFIELD_INT_TYPE mask 	= ((BITFIELD_INT_TYPE) 0x1) << bit_idx; return (mask & bitfield->ints[int_idx]) ? 0x1 : 0x0; }
 
 /* Sets the bit at index @n to @value (which acts as a bool). */
 void bitfield_set_at(Bitfield *bitfield, size_t n, int value)
@@ -76,3 +71,14 @@ void bitfield_print_le(Bitfield *bitfield)
     printf("\n");
 }
 
+size_t bitfield_sum(Bitfield *bitfield)
+{
+    const size_t n_bits = bitfield->size;
+    size_t sum = 0;
+    for(size_t i = 0; i < n_bits; i++)
+    {
+        sum += bitfield_get_at(bitfield, i);
+    }
+
+    return sum;
+}

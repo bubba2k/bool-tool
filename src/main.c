@@ -53,6 +53,11 @@ int lp_parse_expression_debug(const char *expr_str)
     bt_formula_print_truth_table(formula);
     printf("\n");
 
+    printf("Canonical CNF:\n");
+    bt_formula_print_cdnf(formula);
+    printf("Canonical DNF:\n");
+    bt_formula_print_ccnf(formula);
+
     bt_formula_destroy(formula);
 
 	return 1;
@@ -76,6 +81,11 @@ void lp_easy_truthtable(const char *expr_str)
     }
 
     bt_formula_print_truth_table(formula);
+
+    printf("\nCanonical CNF:\n");
+    bt_formula_print_cdnf(formula);
+    printf("Canonical DNF:\n");
+    bt_formula_print_ccnf(formula);
 
     bt_formula_destroy(formula);
 }
