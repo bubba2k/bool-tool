@@ -155,7 +155,7 @@ BT_Formula *bt_formula_create(const char *expr_str, char *err_msg, size_t err_ms
 	/* The array the tokens are stored in temporarily. */
 	DA_tokens *tokens = DA_tokens_create(20);
     /* The array the variables are stored in. */
-    DA_vars *vars = DA_vars_create(20);
+    DA_vars *vars = DA_vars_create(6);
 
 	/* Tokenization */
 	success = lex_expression(expr_str, tokens, err_msg, err_msg_size);
@@ -178,11 +178,13 @@ BT_Formula *bt_formula_create(const char *expr_str, char *err_msg, size_t err_ms
 
     /* Find the variables inside the syntax tree. */
     lp_tree_find_vars(tree, vars);
+    DA_vars_sort(vars);
 
     /* Allocate the formula struct, assign members. */
     BT_Formula *formula = malloc(sizeof(BT_Formula));
     formula->syntax_tree = tree;
     formula->variables   = vars;
+    formula->truths      = bt_formula_eval_truths(formula);
 
     /* Free the token array. */
 	DA_tokens_destroy(tokens);
@@ -200,6 +202,8 @@ void bt_formula_destroy(BT_Formula *formula)
     lp_tree_destroy(formula->syntax_tree);
     /* Free the variable array. */
     DA_vars_destroy(formula->variables);
+    /* Free the bitfield storing the truth table. */
+    bitfield_destroy(formula->truths);
     /* Free the struct itself. */
     free(formula);
 }
@@ -207,6 +211,53 @@ void bt_formula_destroy(BT_Formula *formula)
 void bt_formula_print_vars(BT_Formula *formula)
 {
     DA_vars_print(formula->variables);
+}
+
+void bt_formula_print_truth_table(BT_Formula *formula)
+{
+    /* If there are no variables in the formula,
+     * then simply print 0 or 1. */
+    if(formula->variables->size == 0) 
+    {
+        printf("%d\n", bitfield_get_at(formula->truths, 0));
+        return;
+    }
+
+    const DA_vars *vars = formula->variables;
+
+	/* Print table head */
+	for(size_t i = 0; i < vars->size; i++)
+	{
+		printf(" %s |", vars->data[i].name);
+	}
+	printf("\n");
+	for(size_t i = 0; i < vars->size; i++)
+	{
+		int len = strlen(vars->data[i].name) + 3;
+		while(len--) printf("-");
+	}
+	printf("---");
+	printf("\n");
+
+    /* Print row by row. */
+    const size_t num_rows = formula->truths->size;
+    size_t i = 0;
+	for(i = 0; i < num_rows; i++)
+    {
+        /* Print variable truth values, make sure to leave 
+         * appropriate space. */
+        for(size_t j = 0; j < vars->size; j++)
+        {
+            int len = strlen(vars->data[j].name) - 1;
+            while(len--) printf(" ");
+            int truth_mask = (0x1 << (vars->size - j - 1));
+            int truth_val = (i & truth_mask) ? 1 : 0;
+			printf(" %d |", truth_val);
+        }
+
+        /* Now print the rows truth value. */
+        printf(" %d\n", bitfield_get_at(formula->truths, i));
+    }
 }
 
 Bitfield *bt_formula_eval_truths(BT_Formula *formula)

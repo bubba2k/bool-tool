@@ -50,11 +50,9 @@ int lp_parse_expression_debug(const char *expr_str)
 	lp_tree_print(formula->syntax_tree);
 	printf("\n");
 
-    Bitfield *truths = bt_formula_eval_truths(formula);
-    bitfield_print_le(truths);
+    bt_formula_print_truth_table(formula);
     printf("\n");
 
-    bitfield_destroy(truths);
     bt_formula_destroy(formula);
 
 	return 1;
@@ -69,6 +67,15 @@ void lp_easy_truthtable(const char *expr_str)
      * string. */
     BT_Formula *formula = bt_formula_create(expr_str, 
                           err_msg, err_msg_size);
+
+    if(formula == NULL) {
+        fprintf(stdout, "Failed to construct syntax "
+                "tree from expression '%s': %s\n", 
+                expr_str, err_msg);
+        return;
+    }
+
+    bt_formula_print_truth_table(formula);
 
     bt_formula_destroy(formula);
 }
