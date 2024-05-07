@@ -16,13 +16,18 @@ int lp_getline(char *buf, int size, FILE *file)
 	return 1;
 }
 
+#define LP_LINE_MAX_SIZE 1024
+
+#if DEBUG == 1
+/* DEBUG MAIN */
+
 const char *expressions[5] = {	"(a & b) || c -> (a  & d)",
 								"(1 & b) || adc & e || (e)",
 								"a 1 w w a 0 d & d",
 								"j & k & 0 & 1",
 								"M | K & !u" };
 
-int lp_parse_expression_debug(const char *expr_str)
+int bt_process_expression_debug(const char *expr_str)
 {
 	const size_t err_msg_size = 256;
 	char err_msg[err_msg_size];
@@ -63,7 +68,34 @@ int lp_parse_expression_debug(const char *expr_str)
 	return 1;
 }
 
-void lp_easy_truthtable(const char *expr_str)
+int main()
+{
+    /* Run the default test expressions. */
+    for(unsigned i = 0; i < 5; i++)
+        bt_process_expression_debug(expressions[i]);
+
+	char expr[LP_LINE_MAX_SIZE];
+
+    /* Start the 'REPL'. */
+	while(1)
+	{
+		printf("Enter your expression:\n");
+
+		lp_getline(expr, LP_LINE_MAX_SIZE, stdin);
+		printf("\n");
+
+		lp_parse_expression_debug(expr);
+		printf("\n");
+	}
+
+	return 0;
+}
+
+/* DEBUG MAIN END */
+#else
+/* RELEASE MAIN */
+
+void bt_process_expression(const char *expr_str)
 {
 	const size_t err_msg_size = 256;
 	char err_msg[err_msg_size];
@@ -90,16 +122,11 @@ void lp_easy_truthtable(const char *expr_str)
     bt_formula_destroy(formula);
 }
 
-#define LP_LINE_MAX_SIZE 1024
-
 int main()
 {
-#if DEBUG == 1
-    for(unsigned i = 0; i < 5; i++)
-        lp_parse_expression_debug(expressions[i]);
-#endif
 	char expr[LP_LINE_MAX_SIZE];
 
+    /* Start the REPL */
 	while(1)
 	{
 		printf("Enter your expression:\n");
@@ -107,16 +134,10 @@ int main()
 		lp_getline(expr, LP_LINE_MAX_SIZE, stdin);
 		printf("\n");
 
-		// Debug mode or not
-#if DEBUG == 1
-
-		lp_parse_expression_debug(expr);
-#else
-		lp_easy_truthtable(expr);
-#endif
-
-		printf("\n");
+		bt_process_expression(expr);
 	}
 
 	return 0;
 }
+
+#endif
