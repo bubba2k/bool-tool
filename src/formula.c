@@ -316,7 +316,7 @@ Bitfield *bt_formula_eval_truths(BT_Formula *formula)
 /* A function for printing a set of terms, connected by the given
  * inner/outer operators. Practically this is only used for printing
  * CNFs / DNFs as of now. */
-void bt_normal_form_print(uint64_t *terms, const size_t n_terms, DA_vars *vars,
+void bt_canonical_nf_print(uint64_t *terms, const size_t n_terms, DA_vars *vars,
                           const char *inner_op, const char *outer_op)
 {
     const size_t n_vars = vars->size;
@@ -351,12 +351,12 @@ void bt_normal_form_print(uint64_t *terms, const size_t n_terms, DA_vars *vars,
  * of variable names as input.  */
 void bt_cdnf_print(uint64_t *terms, size_t n_terms, DA_vars *vars)
 {
-    bt_normal_form_print(terms, n_terms, vars, "&", "|");
+    bt_canonical_nf_print(terms, n_terms, vars, "&", "|");
 }
 
 void bt_ccnf_print(uint64_t *terms, size_t n_terms, DA_vars *vars)
 {
-    bt_normal_form_print(terms, n_terms, vars, "|", "&");
+    bt_canonical_nf_print(terms, n_terms, vars, "|", "&");
 }
 
 /* Return a new formula containing the canonical
@@ -410,4 +410,113 @@ void bt_formula_print_ccnf(BT_Formula *formula)
     bt_ccnf_print(disjunctions, n_disjunctions, formula->variables);
     
     free(disjunctions);
+}
+
+/* Calculate the hamming distance (number of different bits) 
+ * of two given bitfields. */
+unsigned compute_hamming_distance(uint64_t a, uint64_t b)
+{
+    /* First xor the two bitfields, then count the 
+     * amount of 1s in the result. */
+    uint64_t differences = a ^ b;
+    unsigned n_differences = 0;
+    for(unsigned i = 0; i < 64; i++)
+        n_differences += (differences & (0x1 << i)) ? 1 : 0;
+
+    return n_differences;
+}
+
+
+/* Return 1 if a reduction occured, 0 if not. 
+ * The number of implicants in the list is supplied to argument 
+ * `n_implicants` */
+int implicant_reduction_step(Implicant *implicants, unsigned *n_implicants,
+                             const unsigned n_variables)
+{
+    /* Compare each implicant with each other implicant. 
+     * If they contain exactly the same variables,
+     * and the hamming distance of their truths is exactly 1,
+     * remove BOTH from the list, and insert a new Implicant
+     * without the differing variable. 
+     * If this happens, return 1 instantly. 
+     * If no implicants are eliminated after a full run, return 0.
+     * (In that case, the list of implicants must be the prime
+     * implicants). */
+    
+    for(unsigned i = 0; i < *n_implicants; i++) {
+        for(unsigned j = 0; j < *n_implicants; j++) {
+            const Implicant *a = &implicants[i];
+            const Implicant *b = &implicants[j];
+            const int hamming_dist = compute_hamming_distance(a->truths,
+                                                              b->truths);
+            if(hamming_dist == 1) {
+                /* TODO: Compute the new implicant to replace these two 
+                 * implicants. */
+                uint64_t new_mask = 0;
+                uint64_t new_truths = 0;
+            }
+        }
+    }
+
+    return 0;
+}
+
+/* Take a CDNF in the form of a list of conjunctions, compute
+ * its prime implicants. */
+Implicant *compute_prime_implicants(uint64_t *conjunctions,
+        const unsigned n_conjunctions, unsigned *n_implicants_out,
+        const unsigned n_variables)
+{
+    /* First things first: Take the CDNF and transform it into
+     * a list of implicants. We need to use the Implicant struct
+     * because the conjunctions will no longer be canonical, 
+     * meaning not every conjunction will contain every variable
+     * in the initial variable. To keep track of this information,
+     * a seperate mask is kept in the `Implicant` struct, which 
+     * keeps track of which variables are in the implicant, and 
+     * which are not. */
+    unsigned n_implicants = n_conjunctions;
+    Implicant *implicants = malloc(sizeof(Implicant) * n_implicants);
+    /* Initial mask is just a bitfield filled with n_variables 1s. */
+    const uint64_t initial_mask = (0x1 << n_variables) - 0x1;
+    /* Copy in all the bits. */
+    for(unsigned i = 0; i < n_implicants; i++) {
+        implicants[i].mask   = initial_mask;
+        implicants[i].truths = conjunctions[i];
+    }
+
+    /* TODO: Run the implication reduction step procedure on the
+     * list of implicants over and over until only prime implicants
+     * are left. */
+
+    return implicants;
+}
+
+/* Read in an implicant and the corresponding set of variables.
+ * Then print a nice string representing it. */
+void bt_implicant_print(Implicant implicant, DA_vars *vars)
+{
+    printf("( ");
+    /* Loop over all possible variables that *could* be
+     * in the implicant. Print only those ones that are,
+     * negated / non-negated. */
+    const size_t n_vars = vars->size;
+    for(unsigned i = 0; i < n_vars; i++) {
+        if(implicant.mask & (0x1ull << i)) {
+            if(implicant.truths & (0x1ull << i))
+                printf("!");
+            printf("%s ", DA_vars_get(vars, i)->name);
+        }
+    }
+    printf(")");
+}
+
+void bt_implicants_print(Implicant *implicants, unsigned n, 
+                         DA_vars *vars)
+{
+    printf("[ ");
+    for(unsigned i = 0; i < n; i++) {
+        bt_implicant_print(implicants[i], vars);
+    }
+    printf(" ]\n");
 }

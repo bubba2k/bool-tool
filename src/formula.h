@@ -36,4 +36,20 @@ Bitfield *bt_formula_eval_truths(BT_Formula *);
 void bt_formula_print_cdnf(BT_Formula *formula);
 void bt_formula_print_ccnf(BT_Formula *formula);
 
+typedef struct Implicant
+{
+    /* Variables with 1 are in the implicant. Variables with 0
+     * are not. */
+    uint64_t mask;
+    uint64_t truths;
+} Implicant;
+
+/* Minimize */
+void bt_implicants_print(Implicant *implicants, unsigned n,
+                         DA_vars *vars);
+Implicant *compute_prime_implicants(uint64_t *conjunctions,
+                                    const unsigned n_conjunctions,
+                                    unsigned *n_implicants_out,
+                                    const unsigned n_variables);
+
 #endif
