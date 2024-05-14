@@ -58,9 +58,10 @@ int bt_process_expression_debug(const char *expr_str)
     bt_formula_print_truth_table(formula);
     printf("\n");
 
-    printf("Canonical CNF:\n");
-    bt_formula_print_cdnf(formula);
+
     printf("Canonical DNF:\n");
+    bt_formula_print_cdnf(formula);
+    printf("Canonical CNF:\n");
     bt_formula_print_ccnf(formula);
 
     bt_formula_destroy(formula);
@@ -84,7 +85,7 @@ int main()
 		lp_getline(expr, LP_LINE_MAX_SIZE, stdin);
 		printf("\n");
 
-		lp_parse_expression_debug(expr);
+		bt_process_expression_debug(expr);
 		printf("\n");
 	}
 
@@ -114,9 +115,9 @@ void bt_process_expression(const char *expr_str)
 
     bt_formula_print_truth_table(formula);
 
-    printf("\nCanonical CNF:\n");
-    bt_formula_print_cdnf(formula);
     printf("Canonical DNF:\n");
+    bt_formula_print_cdnf(formula);
+    printf("\nCanonical CNF:\n");
     bt_formula_print_ccnf(formula);
 
     bt_formula_destroy(formula);
