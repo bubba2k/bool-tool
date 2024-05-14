@@ -41,11 +41,11 @@ An example:
      1 | 1 | 0 | 0
      1 | 1 | 1 | 1
 
-    Canonical CNF:
+    Canonical DNF:
     (!a & !b & !c) | (a & !b & !c) | (!a & b & !c) | 
     (a & b & !c) | (!a & !b & c) | (a & !b & c) | (a & b & c)
 
-    Canonical DNF:
+    Canonical CNF:
     (a | !b | !c)
 
 ### Building
