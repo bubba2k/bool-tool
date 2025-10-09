@@ -115,10 +115,12 @@ void bt_process_expression(const char *expr_str)
 
     bt_formula_print_truth_table(formula);
 
+    /* These are disabled, because buggy.
     printf("Canonical DNF:\n");
     bt_formula_print_cdnf(formula);
     printf("\nCanonical CNF:\n");
     bt_formula_print_ccnf(formula);
+    */
 
     bt_formula_destroy(formula);
 }
