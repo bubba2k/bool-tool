@@ -91,7 +91,7 @@ As you can see, this tree now also encodes the structure of the expression, oper
 Once the syntax tree is built, evaluation is rather trivial. The tree is stepped through recursively and evaluated at each node.
 In pseudo code:
 ```
-eval (node):
+fn eval (node):
 	match node.type:
 		AND 		=> eval(node.left_child) && eval(node.right_child)
 		OR  		=> eval(node.left_child) || eval(node.right_child)
