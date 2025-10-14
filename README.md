@@ -1,5 +1,5 @@
 # Bool Tool
-A CLI parser and evaluator for boolean expressions, written in C99 without external dependencies (except libc).
+A CLI parser and evaluator for boolean expressions, written in C99 without external dependencies.
 Prints the truth table of arbitrary propositional formulas to your terminal.
 
 ### Syntax
